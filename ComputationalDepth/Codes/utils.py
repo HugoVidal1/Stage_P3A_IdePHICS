@@ -380,7 +380,7 @@ def cosine_similarity_nonlinear_joint_evolution(W1s, W2s, b1, b2, W1_stars, ws, 
         denominator = torch.einsum('tp,k->tpk', U_norm, U_star_norm)  # shape: (T, p2, k)
         overlap_tensor = numerator / denominator
         
-        ### DONC h(x) = W2.relu(W1.x) et h*(x) = ws.W*.x ###
+        ### DONC h(x) = W2.relu(W1.x.t()) et h*(x) = ws.He_2(W*.x.t()) ###
         ### Donc if W1 begins to learn W*, then its normal that the overlap between h and h* increase ###
         
     else:
@@ -389,26 +389,27 @@ def cosine_similarity_nonlinear_joint_evolution(W1s, W2s, b1, b2, W1_stars, ws, 
     return overlap_tensor
 
 def generate_weights(d, k, epsilon):
-    deff = int(d**epsilon)
-    W1_stars = [0]*k
-    ws = [torch.sign(torch.randn(deff, 1, dtype=dtype)) for _ in range(k)] 
-    random_matrix,_ = np.linalg.qr(np.random.randn(d, k*deff))
+    '''Generates the teacher W1 matrix and the a final vector'''
+    deff = int(d**epsilon)      # d**epsilon est la dimension de la premiere feature map utile du jeu de donnees
+    W1_stars = [0]*k            # k est le nombre d'index
+    ws = [torch.sign(torch.randn(deff, 1, dtype=dtype)) for _ in range(k)] # ws est un tuple (deff,k) qui contient la matrice de projection finale pour chaque indice
+    random_matrix,_ = np.linalg.qr(np.random.randn(d, k*deff))  # One generates the coefficients for the different index W1*_i matrices
     for i in range(k):
-        W1_stars[i] = random_matrix[:, i*deff:(i+1)*deff]
-        W1_stars[i]= torch.tensor(W1_stars[i], dtype=dtype).to(device)
+        W1_stars[i] = random_matrix[:, i*deff:(i+1)*deff]   # One generates the W1*_i matrix coefficients for the each index and put it in a tuple
+        W1_stars[i] = torch.tensor(W1_stars[i], dtype=dtype).to(device)
     return W1_stars, ws
 
 def generate_data(W1_stars, ws, n, d, epsilon, k, sigma_star1, sigma_star2):
     deff = int(d**epsilon)
-    x = torch.randn(n, d).to(device).to(dtype)
-    hs = torch.zeros(n, k).to(device).to(dtype)
+    x = torch.randn(n, d).to(device).to(dtype)  # Generates n gaussian data points
+    hs = torch.zeros(n, k).to(device).to(dtype) # Generates a support tensor for the index of each data
     for i in range(k):
         "Generate non-linear features for every branch"
         w = ws[i].to(device).to(dtype)
-        h2 = torch.mm(x, W1_stars[i])
-        hs[:,i] = (1 / np.sqrt(deff)) * torch.squeeze(torch.mm(sigma_star1(h2),w)) 
+        h2 = torch.mm(x, W1_stars[i])   # h2 = x.W1_i # shape (n,deff)
+        hs[:,i] = (1 / np.sqrt(deff)) * torch.squeeze(torch.mm(sigma_star1(h2),w)) # hs_i = (Polynome(h2_i).ws_i)/sqrt(deff) # shape ()
     " Commitee machine with sigma_star2 activation"
-    y = 1/np.sqrt(k)*torch.sum(sigma_star2(hs), dim=1).unsqueeze(1).to(device).to(dtype)
+    y = 1/np.sqrt(k)*torch.sum(sigma_star2(hs), dim=1).unsqueeze(1).to(device).to(dtype) # y = sum_i(sigma(hs_i))/sqrt(k)
     return x, y, hs
 
 # Generalization error function
