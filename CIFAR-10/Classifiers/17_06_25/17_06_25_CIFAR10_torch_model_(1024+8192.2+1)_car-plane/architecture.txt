@@ -1,0 +1,3 @@
+Architecture: [1024, 8192, 8192, 1] | Dropout: 0 | Binary: True
+Learning rate = 2e-06 | Learning rate decay = 100000000.0 | Decay norm = 0.1 | Fraction minibatch = 1 | Kappa = 3 | Observation interval = 10 | Fine tuning interval = 5000 | Fine tuning duration = 2000 | Fine tuning learning rate = 2e-05 | Plot fine tuning = True
+None
