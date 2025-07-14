@@ -1,0 +1,14 @@
+Architecture = [1024, 8192, 8192, 8192, 1]
+Dropout = 0
+Binary = True
+Learning rate = 0.0012589254117941675
+Learning rate decay = 100000000.0
+Decay norm = 0.1
+Fraction minibatch = 0.1
+Kappa = 3
+Observation interval = 10
+Fine tuning interval = 2000
+Fine tuning duration = 4000
+Fine tuning learning rate = 0.0012589254117941675
+Plot fine tuning = False
+Lambda ridge fine tuning = 0
