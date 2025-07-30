@@ -1,0 +1,20 @@
+# Fichiers et modèles volumineux
+*.pt
+*.zip
+*.tar.gz
+*.tar
+*.h5
+*.ckpt
+*.npy
+*.npz
+*.png
+
+# Cache ou logs
+*.log
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+
+# Fichiers temporaires système
+.DS_Store
